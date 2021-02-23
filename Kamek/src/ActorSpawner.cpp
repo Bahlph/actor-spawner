@@ -1,12 +1,19 @@
 // Code by Chickensaver (Bahlph#0486)
+// Special thanks to the people of Horizon and NHD that helped me with this!
 
 #include <game.h>
 
+// This should probably be standardized in game.h.
 #define currentLayerId currentLayerID
 
 // Create a class for the spawner that inherits from the default actor class.
 class dActorSpawner_c : public dStageActor_c {
 public:
+
+    //==========//
+    // Methods: //
+    //==========//
+
     static dActorSpawner_c *build(); // Method to allocate memory for the actor.
 
     s32 onCreate(); // Called once when the actor is created.
@@ -21,11 +28,43 @@ public:
     // Checks if the new actor is alive.
     bool newActorIsAlive();
 
+    //============//
+    // Constants: //
+    //============//
+
     // Constant for the profile id of the actor spawner.
     static constexpr u8 ACTOR_SPAWNER_PROFILE_ID = 119;
 
+    //===============================//
+    // Compatability Mode Variables: //
+    //===============================//
+
+    // If false, uses the spritespawner.cpp code.  Nybble 3 bit 1.
+    bool turnOffCompatabilityMode;
+
+    // Holds the triggering event id in compatability mode.  Nybble 5.
+    u8 compatabilityEventId;
+
+    // Nybble 6 bit 1 when in compatability mode.
+    // bool automaticRespawn; 
+
+    //  Nybble 6 bit 2 through nybble 8 bit 4 when in compatability mode.
+    // u16 spawnedId;
+
+    // Holds the spawned actor's settings when in compatability mode.
+    u32 compatabilityChildSettings;
+
+    // Checks if onCreate() has run once, because evenId1 is not initially set during onCreate().
+    bool ranOnce = false;
+
+    // Compatability mode also uses newActor.
+
+    //======================================//
+    // Better Actor Spawner Mode Variables: //
+    //======================================//
+
     // eventId2 is nybbles 1-2.  It represents the triggering event id.
-    // eventId1 is nybbles 3-4.  It represents the target event id.
+    // eventId1 is nybbles 3-4.
     // settings is nybbles 5-12.
     // currentLayerId is nybbles 15-16.
 
@@ -35,20 +74,20 @@ public:
     // If true, the spawned actor respawns automatically.  Nybble 8 bit 1.
     bool automaticRespawn; 
 
-    // If true, the actor is despawned if the triggering event id is turned off. Nybble 8 bit 2.
+    // If true, the actor is despawned if the triggering event id is turned off.  Nybble 8 bit 2.
     bool despawnWithoutEvent;
 
     // If true, the actor spawner is moved to the location of the actor when it is despawned via the
-    // event being turned off. Nybble 8 bit 3.
+    // event being turned off.  Nybble 8 bit 3.
     bool saveDespawnLocation;
 
     // If true, the actor spawner will not keep track of the actor it spawns, so multiple actors can
-    // be spawned. Nybble 8 bit 4.
+    // be spawned.  Nybble 8 bit 4.
     bool doMultiSpawning;
 
     // Sets the number of frames of delay before spawning another actor.  When set to 0, the actor
     // must be respawned manually by turning the event back on.  Otherwise, the event always stays
-    // on and the spawner just waits that number of frames.  Nybble 9 => delay in frames.
+    // on and the spawner just waits that number of frames.  Reinterpretation of nybble 9.
     u16 spawnDelay;
     u16 timer; // Counts up towards spawnDelay.
 
@@ -77,16 +116,41 @@ dActorSpawner_c* dActorSpawner_c::build() {
 
 s32 dActorSpawner_c::onCreate() {
 
-    this->spawnedId = (settings >> 20) & 0xFFF; // Grab nybbles 5-7.
-    this->automaticRespawn = (settings >> 19) & 0x1; // Grab nybble 8 bit 1.
-    this->despawnWithoutEvent = (settings >> 18) & 0x1; // Grab nybble 8 bit 2.
-    this->saveDespawnLocation = (settings >> 17) & 0x1; // Grab nybble 8 bit 3.
-    this->doMultiSpawning = (settings >> 16) & 0x1; // Grab nybble 8 bit 4.
+    // Return the first time in order to get the values of eventId1 and eventId2.
+    if (this->ranOnce == false) {
+        this->ranOnce = true;
+        return false; // Retry onCreate().
+    }
 
-    this->spawnDelay = (settings >> 12) & 0xF; // Grab nybble 9.
-    switch (this->spawnDelay) {
-        case 0:/*this->spawnDelay = 0;*/break;
-        case 1:/*this->spawnDelay = 1;*/break;
+    this->turnOffCompatabilityMode = (this->eventId1 >> 7) & 0x1; // Grab nybble 3 bit 1.
+
+    // Check if compatability mode is on.
+    if (this->turnOffCompatabilityMode == false) {
+        this->compatabilityEventId = (this->settings >> 28) & 0xF; // Grab nybble 5.
+        this->automaticRespawn = (this->settings >> 27) & 0x1; // Grab nybble 6 bit 1.
+        this->spawnedId = (this->settings >> 16) & 0b011111111111;
+
+        u16 tempSet = settings & 0xFFFF; // Grab nybbles 9-12.
+        // Convert nybble settings into settings to give to the spawned actor.
+        this->compatabilityChildSettings = 
+            (tempSet & 3) | ((tempSet & 0xC) << 2) |
+            ((tempSet & 0x30) << 4) | ((tempSet & 0xC0) << 6) |
+            ((tempSet & 0x300) << 8) | ((tempSet & 0xC00) << 10) |
+            ((tempSet & 0x3000) << 12) | ((tempSet & 0xC000) << 14);
+
+        return true;
+    }
+    // Otherwise, continue as normal.
+
+    this->spawnedId = (this->settings >> 20) & 0xFFF; // Grab nybbles 5-7.
+    this->automaticRespawn = (this->settings >> 19) & 0x1; // Grab nybble 8 bit 1.
+    this->despawnWithoutEvent = (this->settings >> 18) & 0x1; // Grab nybble 8 bit 2.
+    this->saveDespawnLocation = (this->settings >> 17) & 0x1; // Grab nybble 8 bit 3.
+    this->doMultiSpawning = (this->settings >> 16) & 0x1; // Grab nybble 8 bit 4.
+
+    switch ( (settings >> 12) & 0xF ) { // Grab nybble 9.
+        case 0:  this->spawnDelay = 0;  break;
+        case 1:  this->spawnDelay = 1;  break;
         case 2:  this->spawnDelay = 10; break;
         case 3:  this->spawnDelay = 20; break;
         default: this->spawnDelay = (this->spawnDelay - 3)*30; // 30, 60, 90, 120, etc.
@@ -95,13 +159,13 @@ s32 dActorSpawner_c::onCreate() {
 
     // --- Nybbles 10-12 ---
 
-    this->isDataBank = (currentLayerId >> 7) & 0b1; // Grab nybbles 15-16 bit 1.
-    this->searchId = (currentLayerId) & 0b1111111; // Grab nybbles 15-16 bits 2-8.
+    this->isDataBank = (this->currentLayerId >> 7) & 0b1; // Grab nybbles 15-16 bit 1.
+    this->searchId = (this->currentLayerId) & 0b1111111; // Grab nybbles 15-16 bits 2-8.
 
     if (this->isDataBank == 0) {
-        OSReport("\002 Actor Spawner has been created [searchId = %x].\n", this->searchId);
+        OSReport("\002 Actor Spawner has been created (searchId = %x).\n", this->searchId);
     } else {
-        OSReport("\002 Data Bank has been created [searchId = %x].\n", this->searchId);
+        OSReport("\002 Data Bank has been created (searchId = %x).\n", this->searchId);
     }
     
     return true;
@@ -109,6 +173,53 @@ s32 dActorSpawner_c::onCreate() {
 
 
 s32 dActorSpawner_c::onExecute() {
+
+    // Check if compatability mode is on.
+    if (this->turnOffCompatabilityMode == false) {
+        // Get nybble 5 and check if the event is on.
+        if ( dFlagMgr_c::instance->active(this->compatabilityEventId - 1) ) {
+            // Check if the actor doesn't exist yet:.
+            if (this->newActor == nullptr) {
+                this->newActor = dStageActor_c::create((Actors)this->spawnedId,
+                    this->compatabilityChildSettings,
+                    &(this->pos),
+                    0, 0
+                );
+            }
+        } else {
+            // Return if flag is off and automatic respawning is on.
+            if (this->automaticRespawn == true) {return true;}
+            // Return if a new actor has been spawned.
+            if (this->newActor != nullptr) {
+                // Check if the new actor is still alive.
+                if ( this->newActorIsAlive() ) {
+                    // Change the position of the actor spawner.
+                    this->pos = this->newActor->pos;
+                    // Despawn the actor.
+                    this->newActor->Delete(1);
+                    this->newActor = nullptr;
+                }
+            }
+        }
+
+        if (this->automaticRespawn == true) {
+            // Return if a new actor hasn't been spawned.
+            if (this->newActor == nullptr) {return true;}
+            // Check if the new actor isn't still alive.
+            if ( !(this->newActorIsAlive()) ) {
+                // Respawn the actor.
+                this->newActor = dStageActor_c::create((Actors)this->spawnedId,
+                    this->compatabilityChildSettings,
+                    &(this->pos),
+                    0, 0
+                );
+            }
+        }
+
+        return true;
+    }
+    // Otherwise, continue as normal.
+
     // Return if this is a data bank.
     if (this->isDataBank == true) {return true;}
 
@@ -123,7 +234,7 @@ s32 dActorSpawner_c::onExecute() {
     }
 
     // If the event is on:
-    if ( dFlagMgr_c::instance->active(this->eventId2-1) ) {
+    if ( dFlagMgr_c::instance->active(this->eventId2 - 1) ) {
 
         // If the new actor doesn't exist yet:
         if (this->newActor == nullptr) {
@@ -214,12 +325,11 @@ dActorSpawner_c* dActorSpawner_c::findCorrespondingDataBank() {
 
 dStageActor_c* dActorSpawner_c::spawnActor() {
     dStageActor_c* actor = (dStageActor_c*) dStageActor_c::create(
-                                (Actors) this->spawnedId,
-                                this->correspondent->settings,
-                                &(this->pos),
-                                0,
-                                0
-                           );
+        (Actors) this->spawnedId,
+        this->correspondent->settings,
+        &(this->pos),
+        0, 0
+    );
     // Set nybbles 1-4 of the new actor.
     actor->eventId2 = this->correspondent->eventId2;
     actor->eventId1 = this->correspondent->eventId1;
