@@ -35,9 +35,9 @@
 
 
     <!-- Colors taken from the comment button colors. -->
-    <dualbox bit="9" title1="&lt;font color=&quot;#dd4f2e&quot;&gt;NewerSMBW Compatability Mode&lt;/font&gt;" title2="&lt;font color=&quot;#55acee&quot;&gt;Better Actor Spawner Mode&lt;/font&gt;" comment="This option exists for compatability with the original NewerSMBW levels. Choose the second option to access new and improved settings!" />
+    <dualbox bit="9" title1="&lt;font color=&quot;#dd4f2e&quot;&gt;NewerSMBW Compatibility Mode&lt;/font&gt;" title2="&lt;font color=&quot;#55acee&quot;&gt;Better Actor Spawner Mode&lt;/font&gt;" comment="This option exists for compatibility with the original NewerSMBW levels. Choose the second option to access new and improved settings!" />
 
-    <!-- COMPATABILITY MODE -->
+    <!-- COMPATIBILITY MODE -->
     <value bit="17-20" title="Triggering Event ID" comment="When this event is activated, the Actor Spawner will create one copy of the actor at the location of the spawner. Keep in mind that some sprites have abnormal placement so expect a lot of testing to make sure that everything works correctly." comment2="The Triggering Event ID is limited to only the first 15 Event IDs." idtype="Triggering Event" requiredbit="9" requiredval="0"/>
     <checkbox bit="21" title="Automatically Respawn" comment="When the actor spawned by this spawner is deleted or missing, and the event is triggered, another actor with the same settings will be spawened. This also stops the spawned actor from despawning when the event is deactivated." requiredbit="9" requiredval="0"/>
     <value bit="22-32" title="Actor ID - Number Entry" comment="Please enter the extension that you wish to dial. If your party cannot be reached, please dial a different number. Thank you." comment2="Do not use an Actor ID that does not return a value on the list below." idtype="Actor" requiredbit="9" requiredval="0"/> <!-- ID type is used so that the number can be shown on the sprite display. -->
@@ -50,7 +50,7 @@
     <value bit="43-44" title="Nybble 10" requiredbit="9" requiredval="0" />
     <value bit="45-46" title="Nybble 11" requiredbit="9" requiredval="0" />
     <value bit="47-48" title="Nybble 12" requiredbit="9" requiredval="0" />
-    <!-- END COMPATABILIY MODE -->
+    <!-- END COMPATIBILIY MODE -->
 
 
 
