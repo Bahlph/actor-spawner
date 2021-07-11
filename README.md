@@ -1,8 +1,6 @@
 # Actor Spawner
 ## By Chickensaver (Bahlph#0486)
 
-----
-
 ### Basic Info:
 This new Actor Spawner has the ability to spawn any actor in the game with any arrangement of nybbles 1-12.  It works by pulling nybble information from a corresponding Actor Spawner in Data Bank mode.
 
