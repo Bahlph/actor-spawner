@@ -7,7 +7,7 @@ This new Actor Spawner has the ability to spawn any actor in the game with any a
 This code is set up to work with the Newer source code (not NSMBWer or more-sprites).  If you'd like a variant for NSMBWer or more-sprites, feel free to contact me!  Additionally, if there are any features you've always wanted in the Actor Spawner, tell me about them!
 
 ### Using the Pre-Built Files:
-If you're using Newer 2.0, to use this actor simply copy the pre-built binaries in the `Build` directory into Newer's `NewerRes` folder.
+If you're using Newer 1.2, to use this actor simply copy the pre-built binaries in the `Build` directory into Newer's `NewerRes` folder.
 
 ### Compiling Yourself:
 To use this actor, you'll have to do the following:
