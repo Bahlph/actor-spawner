@@ -4,9 +4,12 @@
 ### Basic Info:
 This new Actor Spawner has the ability to spawn any actor in the game with any arrangement of nybbles 1-12.  It works by pulling nybble information from a corresponding Actor Spawner in Data Bank mode.
 
-This code is set up to work with the original Newer source code (not NSMBWer or more-sprites).  If you'd like a variant for NSMBWer or more-sprites, feel free to contact me!  Additionally, if there are any features you've always wanted in the Actor Spawner, tell me about them!
+This code is set up to work with the Newer source code (not NSMBWer or more-sprites).  If you'd like a variant for NSMBWer or more-sprites, feel free to contact me!  Additionally, if there are any features you've always wanted in the Actor Spawner, tell me about them!
 
-### Set-Up:
+### Using the Pre-Built Files:
+If you're using Newer 2.0, to use this actor simply copy the pre-built binaries in the `Build` directory into Newer's `NewerRes` folder.
+
+### Compiling Yourself:
 To use this actor, you'll have to do the following:
 1. Edit `makeNewerKP.yaml` (or create your own project) that does not include the original `spritespawner` file.  Instead, include `ActorSpawner.yaml`.
 2. Move the files from the `Kamek` folder supplied here to their respective locations in your filesystem.

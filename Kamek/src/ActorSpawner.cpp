@@ -124,8 +124,10 @@ s32 dActorSpawner_c::onCreate() {
 
     this->turnOffCompatibilityMode = (this->eventId1 >> 7) & 0x1; // Grab nybble 3 bit 1.
 
-    // Check if compatibility mode is on.
-    if (this->turnOffCompatibilityMode == false) {
+    this->isDataBank = (this->currentLayerId >> 7) & 0b1; // Grab nybbles 15-16 bit 1.
+
+    // Check if compatibility mode is on (check the compatibility bit as well as the databank bit).
+    if (this->turnOffCompatibilityMode == false && this->isDataBank == false) {
         this->compatibilityEventId = (this->settings >> 28) & 0xF; // Grab nybble 5.
         this->automaticRespawn = (this->settings >> 27) & 0x1; // Grab nybble 6 bit 1.
         this->spawnedId = (this->settings >> 16) & 0b011111111111;
@@ -148,7 +150,8 @@ s32 dActorSpawner_c::onCreate() {
     this->saveDespawnLocation = (this->settings >> 17) & 0x1; // Grab nybble 8 bit 3.
     this->doMultiSpawning = (this->settings >> 16) & 0x1; // Grab nybble 8 bit 4.
 
-    switch ( (settings >> 12) & 0xF ) { // Grab nybble 9.
+    this->spawnDelay = (settings >> 12) & 0xF; // Grab nybble 9.
+    switch (this->spawnDelay) { 
         case 0:  this->spawnDelay = 0;  break;
         case 1:  this->spawnDelay = 1;  break;
         case 2:  this->spawnDelay = 10; break;
@@ -159,7 +162,6 @@ s32 dActorSpawner_c::onCreate() {
 
     // --- Nybbles 10-12 ---
 
-    this->isDataBank = (this->currentLayerId >> 7) & 0b1; // Grab nybbles 15-16 bit 1.
     this->searchId = (this->currentLayerId) & 0b1111111; // Grab nybbles 15-16 bits 2-8.
 
     if (this->isDataBank == 0) {
